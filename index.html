@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Real Estate Calculator</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#2563eb"/>
+          <path d="M16 6L4 14v12h8v-7h8v7h8V14L16 6z" fill="white"/>
+        </svg>
+        <span>Real Estate Calculator</span>
+      </div>
+      <p class="tagline">Mortgage · Affordability · Rental ROI · Amortization</p>
+    </div>
+  </header>
+
+  <main>
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="mortgage">Mortgage</button>
+      <button class="tab-btn" data-tab="affordability">Affordability</button>
+      <button class="tab-btn" data-tab="rental">Rental ROI</button>
+      <button class="tab-btn" data-tab="amortization">Amortization</button>
+      <button class="tab-btn" data-tab="compare">Compare Loans</button>
+    </nav>
+
+    <!-- ===== MORTGAGE TAB ===== -->
+    <section id="tab-mortgage" class="tab-content active">
+      <div class="panel-grid">
+        <div class="card inputs-card">
+          <h2>Mortgage Details</h2>
+          <div class="form-group">
+            <label for="m-price">Home Price</label>
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="m-price" value="450000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="m-down-pct">Down Payment</label>
+            <div class="input-split">
+              <div class="input-prefix">
+                <span>$</span>
+                <input type="number" id="m-down-amt" value="90000" min="0" step="1000" />
+              </div>
+              <div class="input-suffix">
+                <input type="number" id="m-down-pct" value="20" min="0" max="100" step="0.5" />
+                <span>%</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="m-rate">Interest Rate (APR)</label>
+            <div class="input-suffix">
+              <input type="number" id="m-rate" value="6.75" min="0" max="30" step="0.05" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="m-term">Loan Term</label>
+            <select id="m-term">
+              <option value="30" selected>30 years</option>
+              <option value="20">20 years</option>
+              <option value="15">15 years</option>
+              <option value="10">10 years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="m-tax">Annual Property Tax</label>
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="m-tax" value="5400" min="0" step="100" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="m-ins">Annual Home Insurance</label>
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="m-ins" value="1800" min="0" step="100" />
+            </div>
+          </div>
+          <div class="form-group" id="pmi-group">
+            <label for="m-pmi">PMI Rate (annual)</label>
+            <div class="input-suffix">
+              <input type="number" id="m-pmi" value="0.5" min="0" max="5" step="0.05" />
+              <span>%</span>
+            </div>
+            <small class="hint">Applied when down payment &lt; 20%</small>
+          </div>
+          <div class="form-group">
+            <label for="m-hoa">Monthly HOA Fee</label>
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="m-hoa" value="0" min="0" step="10" />
+            </div>
+          </div>
+        </div>
+
+        <div class="results-column">
+          <div class="card summary-card">
+            <h2>Monthly Payment</h2>
+            <div class="big-number" id="m-total-payment">$0</div>
+            <div class="payment-breakdown" id="m-breakdown">
+              <div class="breakdown-row">
+                <span>Principal &amp; Interest</span>
+                <span id="m-pi">$0</span>
+              </div>
+              <div class="breakdown-row">
+                <span>Property Tax</span>
+                <span id="m-tax-mo">$0</span>
+              </div>
+              <div class="breakdown-row">
+                <span>Home Insurance</span>
+                <span id="m-ins-mo">$0</span>
+              </div>
+              <div class="breakdown-row pmi-row" id="pmi-row">
+                <span>PMI</span>
+                <span id="m-pmi-mo">$0</span>
+              </div>
+              <div class="breakdown-row" id="hoa-row">
+                <span>HOA</span>
+                <span id="m-hoa-mo">$0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card stats-card">
+            <h2>Loan Summary</h2>
+            <div class="stats-grid">
+              <div class="stat">
+                <div class="stat-label">Loan Amount</div>
+                <div class="stat-value" id="m-loan-amt">$0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Total Interest</div>
+                <div class="stat-value highlight-red" id="m-total-interest">$0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Total Cost</div>
+                <div class="stat-value" id="m-total-cost">$0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Payoff Date</div>
+                <div class="stat-value" id="m-payoff-date">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <h2>Payment Distribution</h2>
+            <canvas id="donut-chart" width="260" height="260"></canvas>
+            <div class="chart-legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== AFFORDABILITY TAB ===== -->
+    <section id="tab-affordability" class="tab-content">
+      <div class="panel-grid">
+        <div class="card inputs-card">
+          <h2>Your Finances</h2>
+          <div class="form-group">
+            <label for="a-income">Annual Gross Income</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="a-income" value="120000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="a-debt">Monthly Debt Payments</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="a-debt" value="500" min="0" step="50" />
+            </div>
+            <small class="hint">Car loans, student loans, credit cards, etc.</small>
+          </div>
+          <div class="form-group">
+            <label for="a-down">Down Payment Available</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="a-down" value="80000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="a-rate">Interest Rate</label>
+            <div class="input-suffix">
+              <input type="number" id="a-rate" value="6.75" min="0" max="30" step="0.05" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="a-term">Loan Term</label>
+            <select id="a-term">
+              <option value="30" selected>30 years</option>
+              <option value="20">20 years</option>
+              <option value="15">15 years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>DTI Guideline</label>
+            <select id="a-dti">
+              <option value="28">Conservative (28% front-end)</option>
+              <option value="36" selected>Standard (36% back-end)</option>
+              <option value="43">FHA / Max (43% back-end)</option>
+              <option value="50">VA / Jumbo (50% back-end)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="results-column">
+          <div class="card summary-card">
+            <h2>You Can Afford Up To</h2>
+            <div class="big-number" id="a-max-price">$0</div>
+            <div class="afford-detail">
+              <div class="breakdown-row"><span>Max Monthly Payment</span><span id="a-max-payment">$0</span></div>
+              <div class="breakdown-row"><span>Loan Amount</span><span id="a-loan-amount">$0</span></div>
+              <div class="breakdown-row"><span>Down Payment</span><span id="a-down-display">$0</span></div>
+            </div>
+          </div>
+
+          <div class="card stats-card">
+            <h2>Debt-to-Income Ratios</h2>
+            <div class="dti-bars">
+              <div class="dti-item">
+                <div class="dti-label">
+                  <span>Front-end DTI (housing only)</span>
+                  <span id="a-fe-pct">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="a-fe-bar" style="width:0%"></div></div>
+                <small class="hint" id="a-fe-status"></small>
+              </div>
+              <div class="dti-item">
+                <div class="dti-label">
+                  <span>Back-end DTI (all debts)</span>
+                  <span id="a-be-pct">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="a-be-bar" style="width:0%"></div></div>
+                <small class="hint" id="a-be-status"></small>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Price Range</h2>
+            <div class="price-range-grid">
+              <div class="price-tier conservative">
+                <div class="tier-label">Conservative</div>
+                <div class="tier-price" id="a-conservative">$0</div>
+                <div class="tier-note">28% front-end</div>
+              </div>
+              <div class="price-tier recommended">
+                <div class="tier-label">Recommended</div>
+                <div class="tier-price" id="a-recommended">$0</div>
+                <div class="tier-note">36% back-end</div>
+              </div>
+              <div class="price-tier maximum">
+                <div class="tier-label">Maximum</div>
+                <div class="tier-price" id="a-maximum">$0</div>
+                <div class="tier-note">43% back-end</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== RENTAL ROI TAB ===== -->
+    <section id="tab-rental" class="tab-content">
+      <div class="panel-grid">
+        <div class="card inputs-card">
+          <h2>Property Details</h2>
+          <div class="form-group">
+            <label for="r-price">Purchase Price</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="r-price" value="350000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-down">Down Payment</label>
+            <div class="input-suffix">
+              <input type="number" id="r-down" value="20" min="0" max="100" step="1" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-rate">Interest Rate</label>
+            <div class="input-suffix">
+              <input type="number" id="r-rate" value="7.0" min="0" max="30" step="0.05" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-term">Loan Term</label>
+            <select id="r-term">
+              <option value="30" selected>30 years</option>
+              <option value="20">20 years</option>
+              <option value="15">15 years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="r-rent">Monthly Rent Income</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="r-rent" value="2800" min="0" step="50" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-vacancy">Vacancy Rate</label>
+            <div class="input-suffix">
+              <input type="number" id="r-vacancy" value="5" min="0" max="100" step="1" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-tax">Annual Property Tax</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="r-tax" value="4200" min="0" step="100" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-ins">Annual Insurance</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="r-ins" value="1500" min="0" step="100" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-maint">Annual Maintenance</label>
+            <div class="input-suffix">
+              <input type="number" id="r-maint" value="1" min="0" max="10" step="0.1" />
+              <span>% of value</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-mgmt">Property Management</label>
+            <div class="input-suffix">
+              <input type="number" id="r-mgmt" value="0" min="0" max="20" step="1" />
+              <span>% of rent</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-other">Other Monthly Expenses</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="r-other" value="0" min="0" step="25" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="r-appreciation">Annual Appreciation Rate</label>
+            <div class="input-suffix">
+              <input type="number" id="r-appreciation" value="3" min="0" max="20" step="0.5" />
+              <span>%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-column">
+          <div class="card summary-card">
+            <h2>Monthly Cash Flow</h2>
+            <div class="big-number" id="r-cashflow">$0</div>
+            <div class="payment-breakdown">
+              <div class="breakdown-row"><span>Effective Rent</span><span id="r-eff-rent">$0</span></div>
+              <div class="breakdown-row"><span>Mortgage Payment</span><span id="r-mortgage">$0</span></div>
+              <div class="breakdown-row"><span>Tax + Insurance</span><span id="r-tax-ins">$0</span></div>
+              <div class="breakdown-row"><span>Maintenance</span><span id="r-maint-mo">$0</span></div>
+              <div class="breakdown-row"><span>Management Fee</span><span id="r-mgmt-mo">$0</span></div>
+              <div class="breakdown-row"><span>Other</span><span id="r-other-mo">$0</span></div>
+            </div>
+          </div>
+
+          <div class="card stats-card">
+            <h2>Investment Metrics</h2>
+            <div class="stats-grid">
+              <div class="stat">
+                <div class="stat-label">Cap Rate</div>
+                <div class="stat-value" id="r-cap-rate">0%</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Cash-on-Cash Return</div>
+                <div class="stat-value highlight-green" id="r-coc">0%</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Gross Rent Multiplier</div>
+                <div class="stat-value" id="r-grm">0x</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Annual Cash Flow</div>
+                <div class="stat-value" id="r-annual-cf">$0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Total Cash Invested</div>
+                <div class="stat-value" id="r-cash-invested">$0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">5-Year Equity (est.)</div>
+                <div class="stat-value highlight-green" id="r-5yr-equity">$0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>1% Rule Check</h2>
+            <div class="rule-check" id="r-1pct-check">
+              <div class="rule-value">
+                Monthly rent is <strong id="r-1pct-pct">0%</strong> of purchase price
+              </div>
+              <div class="rule-bar-wrap">
+                <div class="progress-bar"><div class="progress-fill" id="r-1pct-bar" style="width:0%"></div></div>
+                <div class="rule-markers">
+                  <span>0%</span><span>0.5%</span><span style="color:#22c55e;font-weight:600">1%</span><span>1.5%</span><span>2%</span>
+                </div>
+              </div>
+              <div class="rule-status" id="r-1pct-status"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== AMORTIZATION TAB ===== -->
+    <section id="tab-amortization" class="tab-content">
+      <div class="amort-top">
+        <div class="card amort-inputs">
+          <h2>Loan Details</h2>
+          <div class="amort-form">
+            <div class="form-group">
+              <label for="am-price">Home Price</label>
+              <div class="input-prefix"><span>$</span>
+                <input type="number" id="am-price" value="450000" min="0" step="1000" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="am-down">Down Payment</label>
+              <div class="input-suffix">
+                <input type="number" id="am-down" value="20" min="0" max="100" step="0.5" />
+                <span>%</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="am-rate">Interest Rate</label>
+              <div class="input-suffix">
+                <input type="number" id="am-rate" value="6.75" min="0" max="30" step="0.05" />
+                <span>%</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="am-term">Loan Term</label>
+              <select id="am-term">
+                <option value="30" selected>30 years</option>
+                <option value="20">20 years</option>
+                <option value="15">15 years</option>
+                <option value="10">10 years</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="am-extra">Extra Monthly Payment</label>
+              <div class="input-prefix"><span>$</span>
+                <input type="number" id="am-extra" value="0" min="0" step="50" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="am-view">View</label>
+              <select id="am-view">
+                <option value="yearly" selected>Yearly summary</option>
+                <option value="monthly">Monthly detail</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card amort-summary">
+          <h2>Payoff Summary</h2>
+          <div class="amort-stats">
+            <div class="stat"><div class="stat-label">Monthly Payment</div><div class="stat-value" id="am-payment">$0</div></div>
+            <div class="stat"><div class="stat-label">Payoff Date</div><div class="stat-value" id="am-payoff">—</div></div>
+            <div class="stat"><div class="stat-label">Total Interest</div><div class="stat-value highlight-red" id="am-interest">$0</div></div>
+            <div class="stat"><div class="stat-label">Interest Saved</div><div class="stat-value highlight-green" id="am-saved">$0</div></div>
+            <div class="stat"><div class="stat-label">Time Saved</div><div class="stat-value highlight-green" id="am-time-saved">—</div></div>
+          </div>
+          <canvas id="am-chart" width="100%" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="card amort-table-card">
+        <h2>Amortization Schedule</h2>
+        <div class="table-wrapper">
+          <table class="amort-table" id="amort-table">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Payment</th>
+                <th>Principal</th>
+                <th>Interest</th>
+                <th>Balance</th>
+                <th>Equity</th>
+              </tr>
+            </thead>
+            <tbody id="amort-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== COMPARE TAB ===== -->
+    <section id="tab-compare" class="tab-content">
+      <div class="compare-header card">
+        <h2>Loan Comparison</h2>
+        <p>Compare up to three different loan scenarios side by side.</p>
+        <div class="compare-shared">
+          <div class="form-group">
+            <label for="cmp-price">Home Price</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="cmp-price" value="450000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="cmp-down">Down Payment</label>
+            <div class="input-suffix">
+              <input type="number" id="cmp-down" value="20" min="0" max="100" step="0.5" />
+              <span>%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="compare-grid">
+        <div class="card compare-scenario" id="cmp-card-1">
+          <h3>Scenario A</h3>
+          <div class="form-group">
+            <label>Interest Rate</label>
+            <div class="input-suffix">
+              <input type="number" class="cmp-rate" value="6.50" min="0" max="30" step="0.05" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Loan Term</label>
+            <select class="cmp-term">
+              <option value="30" selected>30 years</option>
+              <option value="20">20 years</option>
+              <option value="15">15 years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Points Paid</label>
+            <div class="input-suffix">
+              <input type="number" class="cmp-points" value="0" min="0" max="5" step="0.25" />
+              <span>pts</span>
+            </div>
+          </div>
+          <div class="cmp-results">
+            <div class="breakdown-row"><span>Monthly P&amp;I</span><span class="cmp-pi">$0</span></div>
+            <div class="breakdown-row"><span>Total Interest</span><span class="cmp-int">$0</span></div>
+            <div class="breakdown-row"><span>Points Cost</span><span class="cmp-pts-cost">$0</span></div>
+            <div class="breakdown-row"><span>Total Cost</span><span class="cmp-total">$0</span></div>
+            <div class="breakdown-row"><span>Break-even (vs A)</span><span class="cmp-breakeven">—</span></div>
+          </div>
+        </div>
+
+        <div class="card compare-scenario" id="cmp-card-2">
+          <h3>Scenario B</h3>
+          <div class="form-group">
+            <label>Interest Rate</label>
+            <div class="input-suffix">
+              <input type="number" class="cmp-rate" value="6.75" min="0" max="30" step="0.05" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Loan Term</label>
+            <select class="cmp-term">
+              <option value="30" selected>30 years</option>
+              <option value="20">20 years</option>
+              <option value="15">15 years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Points Paid</label>
+            <div class="input-suffix">
+              <input type="number" class="cmp-points" value="0" min="0" max="5" step="0.25" />
+              <span>pts</span>
+            </div>
+          </div>
+          <div class="cmp-results">
+            <div class="breakdown-row"><span>Monthly P&amp;I</span><span class="cmp-pi">$0</span></div>
+            <div class="breakdown-row"><span>Total Interest</span><span class="cmp-int">$0</span></div>
+            <div class="breakdown-row"><span>Points Cost</span><span class="cmp-pts-cost">$0</span></div>
+            <div class="breakdown-row"><span>Total Cost</span><span class="cmp-total">$0</span></div>
+            <div class="breakdown-row"><span>Break-even (vs A)</span><span class="cmp-breakeven">—</span></div>
+          </div>
+        </div>
+
+        <div class="card compare-scenario" id="cmp-card-3">
+          <h3>Scenario C</h3>
+          <div class="form-group">
+            <label>Interest Rate</label>
+            <div class="input-suffix">
+              <input type="number" class="cmp-rate" value="7.0" min="0" max="30" step="0.05" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Loan Term</label>
+            <select class="cmp-term">
+              <option value="30" selected>30 years</option>
+              <option value="20">20 years</option>
+              <option value="15">15 years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Points Paid</label>
+            <div class="input-suffix">
+              <input type="number" class="cmp-points" value="1" min="0" max="5" step="0.25" />
+              <span>pts</span>
+            </div>
+          </div>
+          <div class="cmp-results">
+            <div class="breakdown-row"><span>Monthly P&amp;I</span><span class="cmp-pi">$0</span></div>
+            <div class="breakdown-row"><span>Total Interest</span><span class="cmp-int">$0</span></div>
+            <div class="breakdown-row"><span>Points Cost</span><span class="cmp-pts-cost">$0</span></div>
+            <div class="breakdown-row"><span>Total Cost</span><span class="cmp-total">$0</span></div>
+            <div class="breakdown-row"><span>Break-even (vs A)</span><span class="cmp-breakeven">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card compare-chart-card">
+        <h2>Cost Over Time</h2>
+        <canvas id="compare-chart" height="280"></canvas>
+        <div class="chart-legend" id="compare-legend"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>For informational purposes only. Consult a licensed mortgage professional for personalized advice.</p>
+  </footer>
+
+  <script src="js/calculator.js"></script>
+</body>
+</html>
