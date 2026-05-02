@@ -16,7 +16,7 @@
         </svg>
         <span>Real Estate Calculator</span>
       </div>
-      <p class="tagline">Mortgage · Affordability · Rental ROI · Repairs · Buy Box</p>
+      <p class="tagline">Mortgage · Affordability · Rental ROI · Repairs · Buy Box · Rent vs. Buy</p>
     </div>
   </header>
 
@@ -29,6 +29,7 @@
       <button class="tab-btn" data-tab="compare">Compare Loans</button>
       <button class="tab-btn" data-tab="repairs">Repair Costs</button>
       <button class="tab-btn" data-tab="buybox">Buy Box</button>
+      <button class="tab-btn" data-tab="rentvsbuy">Rent vs. Buy</button>
     </nav>
 
     <!-- ===== MORTGAGE TAB ===== -->
@@ -1051,6 +1052,173 @@
           </a>
         </div>
         <small class="hint" style="margin-top:12px;display:block">Links open the portal's search page filtered to your location. Apply additional filters (days on market, price reductions) within each platform.</small>
+      </div>
+    </section>
+
+    <!-- ===== RENT VS. BUY TAB ===== -->
+    <section id="tab-rentvsbuy" class="tab-content">
+      <div class="panel-grid">
+        <div class="card inputs-card">
+          <h2>Buying Scenario</h2>
+          <div class="form-group">
+            <label for="rvb-price">Home Price</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="rvb-price" value="400000" min="0" step="5000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-down">Down Payment</label>
+            <div class="input-suffix">
+              <input type="number" id="rvb-down" value="20" min="0" max="100" step="0.5" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-rate">Mortgage Rate</label>
+            <div class="input-suffix">
+              <input type="number" id="rvb-rate" value="6.75" min="0" max="30" step="0.05" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-term">Loan Term</label>
+            <select id="rvb-term">
+              <option value="30" selected>30 years</option>
+              <option value="20">20 years</option>
+              <option value="15">15 years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="rvb-tax">Annual Property Tax</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="rvb-tax" value="5000" min="0" step="100" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-ins">Annual Home Insurance</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="rvb-ins" value="1500" min="0" step="100" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-hoa">Monthly HOA</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="rvb-hoa" value="0" min="0" step="25" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-maint">Annual Maintenance</label>
+            <div class="input-suffix">
+              <input type="number" id="rvb-maint" value="1" min="0" max="5" step="0.1" />
+              <span>% of value</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-close-buy">Buying Closing Costs</label>
+            <div class="input-suffix">
+              <input type="number" id="rvb-close-buy" value="3" min="0" max="10" step="0.25" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-close-sell">Selling Costs</label>
+            <div class="input-suffix">
+              <input type="number" id="rvb-close-sell" value="6" min="0" max="15" step="0.25" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-appreciation">Annual Appreciation</label>
+            <div class="input-suffix">
+              <input type="number" id="rvb-appreciation" value="3" min="0" max="15" step="0.25" />
+              <span>%</span>
+            </div>
+          </div>
+
+          <h2 style="margin-top:24px">Renting Scenario</h2>
+          <div class="form-group">
+            <label for="rvb-rent">Monthly Rent</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="rvb-rent" value="2200" min="0" step="50" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-rent-increase">Annual Rent Increase</label>
+            <div class="input-suffix">
+              <input type="number" id="rvb-rent-increase" value="3" min="0" max="15" step="0.25" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-renter-ins">Monthly Renter's Insurance</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="rvb-renter-ins" value="20" min="0" step="5" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rvb-invest-return">Investment Return on Savings</label>
+            <div class="input-suffix">
+              <input type="number" id="rvb-invest-return" value="7" min="0" max="20" step="0.25" />
+              <span>% / year</span>
+            </div>
+            <small class="hint">Return if down payment &amp; monthly savings were invested instead</small>
+          </div>
+          <div class="form-group">
+            <label for="rvb-years">Analysis Period</label>
+            <div class="input-suffix">
+              <input type="number" id="rvb-years" value="10" min="1" max="30" step="1" />
+              <span>years</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-column">
+          <div class="card summary-card">
+            <h2>After <span id="rvb-years-label">10</span> Years…</h2>
+            <div class="rvb-verdict" id="rvb-verdict"></div>
+            <div class="payment-breakdown" style="margin-top:16px">
+              <div class="breakdown-row"><span>Buyer Net Worth</span><span id="rvb-buy-nw" style="font-weight:600"></span></div>
+              <div class="breakdown-row"><span>Renter Net Worth</span><span id="rvb-rent-nw" style="font-weight:600"></span></div>
+              <div class="breakdown-row"><span>Difference</span><span id="rvb-diff" style="font-weight:600"></span></div>
+            </div>
+          </div>
+
+          <div class="card stats-card">
+            <h2>Monthly Cost Comparison</h2>
+            <div class="stats-grid">
+              <div class="stat">
+                <div class="stat-label">Buyer Month 1</div>
+                <div class="stat-value" id="rvb-buy-mo">$0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Renter Month 1</div>
+                <div class="stat-value" id="rvb-rent-mo">$0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Break-Even Year</div>
+                <div class="stat-value highlight-green" id="rvb-breakeven">—</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Total Buy Cost</div>
+                <div class="stat-value highlight-red" id="rvb-total-buy-cost">$0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Total Rent Cost</div>
+                <div class="stat-value highlight-red" id="rvb-total-rent-cost">$0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Home Equity Built</div>
+                <div class="stat-value highlight-green" id="rvb-equity">$0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <h2>Net Worth Over Time</h2>
+            <canvas id="rvb-chart" height="260"></canvas>
+            <div class="chart-legend" id="rvb-legend"></div>
+          </div>
+        </div>
       </div>
     </section>
 

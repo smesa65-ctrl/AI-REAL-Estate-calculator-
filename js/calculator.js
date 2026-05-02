@@ -1114,3 +1114,217 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   calcDeal();
   updatePortalLinks();
 })();
+
+/* ============================================================
+   RENT VS. BUY TAB
+============================================================ */
+(function () {
+  function get(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+  const COLORS = { buy: '#2563eb', rent: '#16a34a' };
+
+  function calc() {
+    const price        = get('rvb-price');
+    const downPct      = get('rvb-down') / 100;
+    const rate         = get('rvb-rate');
+    const term         = parseInt(document.getElementById('rvb-term').value);
+    const taxAnn       = get('rvb-tax');
+    const insAnn       = get('rvb-ins');
+    const hoa          = get('rvb-hoa');
+    const maintPct     = get('rvb-maint') / 100;
+    const closeBuyPct  = get('rvb-close-buy') / 100;
+    const closeSellPct = get('rvb-close-sell') / 100;
+    const appreciationRate = get('rvb-appreciation') / 100;
+
+    const rent0        = get('rvb-rent');
+    const rentIncrease = get('rvb-rent-increase') / 100;
+    const renterIns    = get('rvb-renter-ins');
+    const investReturn = get('rvb-invest-return') / 100;
+    const years        = Math.max(1, Math.round(get('rvb-years')));
+
+    document.getElementById('rvb-years-label').textContent = years;
+
+    const downAmt      = price * downPct;
+    const closingBuy   = price * closeBuyPct;
+    const loan         = price - downAmt;
+    const pi           = monthlyPayment(loan, rate, term);
+
+    // Month-by-month simulation
+    const r      = rate / 100 / 12;
+    const iRate  = investReturn / 12;
+
+    let loanBal   = loan;
+    let buyerNW   = -downAmt - closingBuy;  // starts negative (cash out)
+    let renterNW  = 0;                       // renter invested down + closing
+    let renterPot = downAmt + closingBuy;    // renter's investable capital
+
+    let buyTotalCost  = downAmt + closingBuy;
+    let rentTotalCost = 0;
+
+    const buyNWByYear  = [];
+    const rentNWByYear = [];
+    let breakEvenYear  = null;
+
+    for (let m = 1; m <= years * 12; m++) {
+      const yr = Math.ceil(m / 12);
+
+      // --- Buyer monthly costs ---
+      const intCharge  = loanBal > 0 ? loanBal * r : 0;
+      const principal  = loanBal > 0 ? Math.min(loanBal, pi - intCharge) : 0;
+      loanBal          = Math.max(0, loanBal - principal);
+      const taxMo      = taxAnn / 12;
+      const insMo      = insAnn / 12;
+      const maintMo    = (price * maintPct) / 12;
+      const buyMo      = pi + taxMo + insMo + hoa + maintMo;
+      buyTotalCost    += buyMo;
+
+      // Home value with appreciation
+      const homeVal    = price * Math.pow(1 + appreciationRate, m / 12);
+      // Buyer net worth = home equity − outstanding loan, net of total cash spent vs. rent
+      const equity     = homeVal - loanBal;
+      // At sale: subtract sell-side costs
+      const saleProceeds = homeVal * (1 - closeSellPct);
+      buyerNW          = saleProceeds - loanBal;
+
+      // --- Renter monthly costs ---
+      const rentMo     = rent0 * Math.pow(1 + rentIncrease, (m - 1) / 12);
+      const rentCostMo = rentMo + renterIns;
+      rentTotalCost   += rentCostMo;
+
+      // Renter invests the down payment + closing costs + monthly savings vs. buyer
+      const monthlySavings = Math.max(0, buyMo - rentCostMo);
+      renterPot = renterPot * (1 + iRate) + monthlySavings;
+      renterNW  = renterPot;
+
+      if (m % 12 === 0) {
+        buyNWByYear.push(buyerNW);
+        rentNWByYear.push(renterNW);
+
+        if (breakEvenYear === null && buyerNW > renterNW) {
+          breakEvenYear = yr;
+        }
+      }
+    }
+
+    // Month-1 costs for display
+    const taxMo1  = taxAnn / 12;
+    const insMo1  = insAnn / 12;
+    const maintMo1 = (price * maintPct) / 12;
+    const buyMo1  = pi + taxMo1 + insMo1 + hoa + maintMo1;
+    const rentMo1 = rent0 + renterIns;
+
+    const finalHomeVal = price * Math.pow(1 + appreciationRate, years);
+    const finalLoanBal = loanBal;
+    const finalEquity  = finalHomeVal * (1 - closeSellPct) - finalLoanBal;
+
+    const diff    = buyerNW - renterNW;
+    const buyWins = diff > 0;
+
+    // --- Update DOM ---
+    document.getElementById('rvb-buy-nw').textContent  = fmtDollar(buyerNW);
+    document.getElementById('rvb-buy-nw').style.color  = buyerNW >= 0 ? '#4ade80' : '#f87171';
+    document.getElementById('rvb-rent-nw').textContent = fmtDollar(renterNW);
+    document.getElementById('rvb-rent-nw').style.color = '#4ade80';
+    document.getElementById('rvb-diff').textContent    = (diff >= 0 ? '+' : '') + fmtDollar(diff);
+    document.getElementById('rvb-diff').style.color    = diff >= 0 ? '#4ade80' : '#f87171';
+
+    document.getElementById('rvb-verdict').textContent = buyWins
+      ? `Buying beats renting by ${fmtDollar(Math.abs(diff))} after ${years} years`
+      : `Renting beats buying by ${fmtDollar(Math.abs(diff))} after ${years} years`;
+
+    document.getElementById('rvb-buy-mo').textContent        = fmtDollar(buyMo1);
+    document.getElementById('rvb-rent-mo').textContent       = fmtDollar(rentMo1);
+    document.getElementById('rvb-breakeven').textContent     = breakEvenYear !== null ? `Year ${breakEvenYear}` : `> ${years} yrs`;
+    document.getElementById('rvb-total-buy-cost').textContent= fmtDollar(buyTotalCost);
+    document.getElementById('rvb-total-rent-cost').textContent = fmtDollar(rentTotalCost);
+    document.getElementById('rvb-equity').textContent        = fmtDollar(Math.max(0, finalEquity));
+
+    drawRvbChart(buyNWByYear, rentNWByYear, years);
+  }
+
+  function drawRvbChart(buyNW, rentNW, years) {
+    const canvas = document.getElementById('rvb-chart');
+    const W = canvas.offsetWidth || 600;
+    canvas.width = W;
+    const H = 240;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+
+    const all  = [...buyNW, ...rentNW];
+    const minV = Math.min(...all);
+    const maxV = Math.max(...all);
+    const range = maxV - minV || 1;
+
+    const pad = { t: 20, r: 20, b: 30, l: 64 };
+    const cW  = W - pad.l - pad.r;
+    const cH  = H - pad.t - pad.b;
+
+    const xOf = (yr) => pad.l + ((yr - 1) / Math.max(years - 1, 1)) * cW;
+    const yOf = (v)  => pad.t + cH - ((v - minV) / range) * cH;
+
+    // Grid lines
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1;
+    const ticks = 5;
+    for (let i = 0; i <= ticks; i++) {
+      const v = minV + (range * i / ticks);
+      const y = yOf(v);
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cW, y); ctx.stroke();
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '11px -apple-system, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(fmtDollar(v, 0), pad.l - 4, y + 4);
+    }
+
+    // Zero line
+    if (minV < 0 && maxV > 0) {
+      const yz = yOf(0);
+      ctx.strokeStyle = '#d1d5db';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(pad.l, yz); ctx.lineTo(pad.l + cW, yz); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Draw lines
+    [[buyNW, COLORS.buy, 'Buying'], [rentNW, COLORS.rent, 'Renting']].forEach(([data, color]) => {
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      data.forEach((v, i) => {
+        const x = xOf(i + 1);
+        const y = yOf(v);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    });
+
+    // X-axis labels
+    const step = Math.ceil(years / 8);
+    for (let yr = 1; yr <= years; yr++) {
+      if (yr === 1 || yr % step === 0 || yr === years) {
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Yr ' + yr, xOf(yr), H - 6);
+      }
+    }
+
+    const legend = document.getElementById('rvb-legend');
+    legend.innerHTML = [['Buying', COLORS.buy], ['Renting', COLORS.rent]].map(([l, c]) =>
+      `<div class="legend-item"><span class="legend-dot" style="background:${c}"></span>${l}</div>`
+    ).join('');
+  }
+
+  const inputs = [
+    'rvb-price','rvb-down','rvb-rate','rvb-term','rvb-tax','rvb-ins','rvb-hoa',
+    'rvb-maint','rvb-close-buy','rvb-close-sell','rvb-appreciation',
+    'rvb-rent','rvb-rent-increase','rvb-renter-ins','rvb-invest-return','rvb-years'
+  ];
+  inputs.forEach(id => document.getElementById(id).addEventListener('input', calc));
+
+  window.addEventListener('resize', calc);
+
+  calc();
+})();
