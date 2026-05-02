@@ -696,3 +696,421 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
   calc();
 })();
+
+/* ============================================================
+   REPAIR COSTS TAB
+============================================================ */
+(function () {
+  const REPAIR_DATA = [
+    { cat: 'Kitchen', color: '#f59e0b', items: [
+      { id: 'kit-full',       name: 'Full Kitchen Remodel',    unit: 'job',  low: 15000, high: 45000, avg: 25000 },
+      { id: 'kit-cabs',       name: 'Cabinet Replacement',     unit: 'job',  low: 4000,  high: 15000, avg: 8000  },
+      { id: 'kit-counters',   name: 'Countertops',             unit: 'job',  low: 2500,  high: 6500,  avg: 4000  },
+      { id: 'kit-appliances', name: 'Appliance Package',       unit: 'pkg',  low: 2000,  high: 6000,  avg: 3500  },
+      { id: 'kit-flooring',   name: 'Kitchen Flooring',        unit: 'sqft', low: 3,     high: 10,    avg: 6     },
+      { id: 'kit-sink',       name: 'Sink &amp; Faucet',       unit: 'ea',   low: 400,   high: 1200,  avg: 700   },
+      { id: 'kit-backsplash', name: 'Backsplash',              unit: 'job',  low: 800,   high: 2500,  avg: 1500  },
+    ]},
+    { cat: 'Bathrooms', color: '#06b6d4', items: [
+      { id: 'bath-full',   name: 'Full Bath Remodel',          unit: 'ea',   low: 8000,  high: 20000, avg: 12000 },
+      { id: 'bath-half',   name: 'Half Bath Remodel',          unit: 'ea',   low: 3000,  high: 8000,  avg: 5000  },
+      { id: 'bath-tile',   name: 'Tub/Shower Tile',            unit: 'ea',   low: 800,   high: 3000,  avg: 1500  },
+      { id: 'bath-toilet', name: 'Toilet Replacement',         unit: 'ea',   low: 200,   high: 600,   avg: 350   },
+      { id: 'bath-vanity', name: 'Vanity &amp; Sink',          unit: 'ea',   low: 500,   high: 2500,  avg: 1200  },
+      { id: 'bath-floor',  name: 'Bath Flooring',              unit: 'sqft', low: 4,     high: 12,    avg: 7     },
+    ]},
+    { cat: 'Flooring', color: '#8b5cf6', items: [
+      { id: 'fl-hardwood', name: 'Hardwood (install/refinish)', unit: 'sqft', low: 5,   high: 12,  avg: 8   },
+      { id: 'fl-lvp',      name: 'LVP / LVT',                  unit: 'sqft', low: 3,   high: 8,   avg: 5   },
+      { id: 'fl-carpet',   name: 'Carpet',                     unit: 'sqft', low: 2,   high: 6,   avg: 3.5 },
+      { id: 'fl-tile',     name: 'Tile',                       unit: 'sqft', low: 5,   high: 15,  avg: 9   },
+    ]},
+    { cat: 'Roof', color: '#ef4444', items: [
+      { id: 'roof-full',    name: 'Full Roof Replacement',      unit: 'sq',  low: 350,  high: 600,  avg: 450  },
+      { id: 'roof-partial', name: 'Partial Roof Repair',        unit: 'job', low: 500,  high: 3000, avg: 1200 },
+      { id: 'roof-gutters', name: 'Gutter Replacement',         unit: 'lft', low: 5,    high: 12,   avg: 8    },
+    ]},
+    { cat: 'HVAC', color: '#f97316', items: [
+      { id: 'hvac-full',    name: 'Full HVAC System',           unit: 'ea',  low: 7000,  high: 15000, avg: 10000 },
+      { id: 'hvac-furnace', name: 'Furnace Replacement',        unit: 'ea',  low: 2500,  high: 6000,  avg: 4000  },
+      { id: 'hvac-ac',      name: 'A/C Unit',                   unit: 'ea',  low: 3000,  high: 7000,  avg: 4500  },
+      { id: 'hvac-wh',      name: 'Water Heater (tank)',        unit: 'ea',  low: 900,   high: 2000,  avg: 1300  },
+      { id: 'hvac-wh-tl',   name: 'Water Heater (tankless)',    unit: 'ea',  low: 1500,  high: 3500,  avg: 2200  },
+      { id: 'hvac-ducts',   name: 'Ductwork (partial)',         unit: 'job', low: 1000,  high: 4000,  avg: 2000  },
+    ]},
+    { cat: 'Electrical', color: '#eab308', items: [
+      { id: 'elec-panel',   name: 'Panel Upgrade (200A)',       unit: 'ea',  low: 1500,  high: 4000,  avg: 2500  },
+      { id: 'elec-rewire',  name: 'Full Rewire',                unit: 'job', low: 8000,  high: 20000, avg: 12000 },
+      { id: 'elec-outlets', name: 'Outlets / Switches',         unit: 'ea',  low: 150,   high: 300,   avg: 200   },
+      { id: 'elec-fans',    name: 'Ceiling Fans',               unit: 'ea',  low: 200,   high: 600,   avg: 350   },
+      { id: 'elec-lights',  name: 'Light Fixtures',             unit: 'ea',  low: 100,   high: 400,   avg: 200   },
+    ]},
+    { cat: 'Plumbing', color: '#0ea5e9', items: [
+      { id: 'plumb-repipe',   name: 'Full Repipe',              unit: 'job', low: 5000,  high: 15000, avg: 8000  },
+      { id: 'plumb-fixtures', name: 'Plumbing Fixtures',        unit: 'ea',  low: 200,   high: 500,   avg: 300   },
+      { id: 'plumb-sewer',    name: 'Sewer Line',               unit: 'job', low: 3000,  high: 8000,  avg: 5000  },
+      { id: 'plumb-drains',   name: 'Drain Cleaning',           unit: 'job', low: 150,   high: 500,   avg: 300   },
+    ]},
+    { cat: 'Exterior', color: '#22c55e', items: [
+      { id: 'ext-paint',    name: 'Exterior Paint',             unit: 'job', low: 2500,  high: 6000,  avg: 3800  },
+      { id: 'ext-siding',   name: 'Siding Replacement',         unit: 'job', low: 8000,  high: 20000, avg: 12000 },
+      { id: 'ext-driveway', name: 'Driveway (concrete/asphalt)',unit: 'job', low: 3000,  high: 8000,  avg: 5000  },
+      { id: 'ext-landscape',name: 'Landscaping / Curb Appeal',  unit: 'job', low: 1000,  high: 4000,  avg: 2000  },
+      { id: 'ext-deck',     name: 'Deck / Patio',               unit: 'sqft',low: 15,    high: 50,    avg: 30    },
+      { id: 'ext-fence',    name: 'Fence',                      unit: 'lft', low: 20,    high: 50,    avg: 32    },
+      { id: 'ext-garage',   name: 'Garage Door',                unit: 'ea',  low: 800,   high: 2500,  avg: 1500  },
+      { id: 'ext-windows',  name: 'Windows (replacement)',      unit: 'ea',  low: 400,   high: 1000,  avg: 650   },
+    ]},
+    { cat: 'Interior', color: '#a855f7', items: [
+      { id: 'int-paint',   name: 'Interior Paint (whole house)',unit: 'job', low: 2000,  high: 5000,  avg: 3200  },
+      { id: 'int-doors',   name: 'Interior Doors',              unit: 'ea',  low: 200,   high: 500,   avg: 300   },
+      { id: 'int-trim',    name: 'Trim &amp; Baseboards',       unit: 'job', low: 800,   high: 2500,  avg: 1500  },
+      { id: 'int-drywall', name: 'Drywall Repair / Replace',    unit: 'job', low: 500,   high: 3000,  avg: 1500  },
+      { id: 'int-closets', name: 'Closet Systems',              unit: 'ea',  low: 300,   high: 1200,  avg: 600   },
+    ]},
+    { cat: 'Foundation / Structural', color: '#6b7280', items: [
+      { id: 'found-crack', name: 'Foundation Crack Repair',     unit: 'job', low: 500,   high: 3000,  avg: 1500  },
+      { id: 'found-crawl', name: 'Crawl Space Encapsulation',   unit: 'job', low: 3000,  high: 8000,  avg: 5000  },
+      { id: 'found-water', name: 'Basement Waterproofing',      unit: 'job', low: 5000,  high: 15000, avg: 8000  },
+      { id: 'found-beam',  name: 'Structural Beam / Post',      unit: 'ea',  low: 1500,  high: 5000,  avg: 3000  },
+    ]},
+  ];
+
+  const PRESETS = {
+    cosmetic: {
+      desc: 'Light updates only — interior paint, carpet/flooring, landscaping, minor fixtures. No major systems work.',
+      items: { 'int-paint': 1, 'fl-carpet': 800, 'ext-landscape': 1, 'elec-lights': 8, 'bath-toilet': 2, 'bath-vanity': 1, 'kit-sink': 1 }
+    },
+    light: {
+      desc: 'Cosmetic plus kitchen update, 1–2 bath refreshes, new flooring throughout, paint, and minor HVAC.',
+      items: { 'int-paint': 1, 'fl-lvp': 1200, 'kit-cabs': 1, 'kit-counters': 1, 'kit-appliances': 1, 'kit-sink': 1, 'kit-backsplash': 1, 'bath-full': 1, 'bath-vanity': 2, 'bath-toilet': 2, 'ext-landscape': 1, 'ext-paint': 1, 'elec-lights': 10, 'hvac-wh': 1 }
+    },
+    full: {
+      desc: 'Full renovation — new kitchen, all baths, flooring, windows, roof repair, systems updates, interior and exterior.',
+      items: { 'int-paint': 1, 'int-drywall': 1, 'int-trim': 1, 'fl-lvp': 1400, 'kit-full': 1, 'bath-full': 2, 'bath-half': 1, 'ext-paint': 1, 'ext-windows': 8, 'ext-garage': 1, 'roof-partial': 1, 'hvac-wh': 1, 'hvac-ac': 1, 'elec-panel': 1, 'elec-lights': 12, 'ext-landscape': 1, 'bath-toilet': 3 }
+    },
+    gut: {
+      desc: 'Complete gut rehab — all new HVAC, electrical, plumbing, roof, kitchen, bathrooms, and finishes.',
+      items: { 'kit-full': 1, 'bath-full': 2, 'bath-half': 1, 'fl-hardwood': 1400, 'int-paint': 1, 'int-drywall': 1, 'int-trim': 1, 'int-doors': 8, 'ext-paint': 1, 'ext-windows': 10, 'roof-full': 18, 'hvac-full': 1, 'hvac-wh': 1, 'elec-panel': 1, 'elec-rewire': 1, 'plumb-repipe': 1, 'ext-landscape': 1, 'ext-driveway': 1 }
+    }
+  };
+
+  function getQtyInput(id) { return document.querySelector(`input[data-id="${id}"]`); }
+  function getCostInput(id) { return document.querySelector(`input[data-cost="${id}"]`); }
+  function getCheck(id)     { return document.querySelector(`input[data-check="${id}"]`); }
+
+  function buildTable() {
+    const tbody = document.getElementById('repair-body');
+    tbody.innerHTML = '';
+    REPAIR_DATA.forEach(cat => {
+      const hdr = document.createElement('tr');
+      hdr.className = 'cat-header-row';
+      hdr.innerHTML = `<td colspan="6"><span class="cat-badge" style="background:${cat.color}"></span>${cat.cat}</td>`;
+      tbody.appendChild(hdr);
+
+      cat.items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = 'repair-row excluded';
+        tr.dataset.itemId = item.id;
+        const rangeStr = item.unit === 'sqft' || item.unit === 'lft' || item.unit === 'sq'
+          ? `$${fmt(item.low)}-$${fmt(item.high)} /${item.unit}`
+          : `$${fmt(item.low)}-$${fmt(item.high)}`;
+        tr.innerHTML = `
+          <td style="text-align:center"><input type="checkbox" data-check="${item.id}" /></td>
+          <td>${item.name} <span style="font-size:11px;color:var(--gray-400)">(${item.unit})</span></td>
+          <td><span class="repair-range">${rangeStr}</span></td>
+          <td><input type="number" data-id="${item.id}" value="0" min="0" step="1" /></td>
+          <td><input type="number" data-cost="${item.id}" value="${item.avg}" min="0" step="1" /></td>
+          <td class="repair-subtotal" data-sub="${item.id}">—</td>`;
+        tbody.appendChild(tr);
+
+        tr.querySelector(`input[data-check="${item.id}"]`).addEventListener('change', (e) => {
+          tr.classList.toggle('excluded', !e.target.checked);
+          calcRepairs();
+        });
+        tr.querySelector(`input[data-id="${item.id}"]`).addEventListener('input', calcRepairs);
+        tr.querySelector(`input[data-cost="${item.id}"]`).addEventListener('input', calcRepairs);
+      });
+    });
+  }
+
+  function calcRepairs() {
+    let hard = 0;
+    let count = 0;
+
+    REPAIR_DATA.forEach(cat => {
+      cat.items.forEach(item => {
+        const checked = getCheck(item.id)?.checked;
+        const qty  = parseFloat(getQtyInput(item.id)?.value) || 0;
+        const cost = parseFloat(getCostInput(item.id)?.value) || 0;
+        const sub  = checked ? qty * cost : 0;
+        const subEl = document.querySelector(`[data-sub="${item.id}"]`);
+        if (subEl) {
+          subEl.textContent = checked && qty > 0 ? fmtDollar(sub) : '—';
+          subEl.classList.toggle('active', checked && qty > 0);
+        }
+        if (checked) { hard += sub; if (qty > 0) count++; }
+      });
+    });
+
+    const permits     = parseFloat(document.getElementById('rep-permits').value)     || 0;
+    const contingPct  = parseFloat(document.getElementById('rep-contingency').value) || 0;
+    const sqft        = parseFloat(document.getElementById('rep-sqft').value)        || 0;
+    const contingency = hard * contingPct / 100;
+    const total       = hard + permits + contingency;
+
+    document.getElementById('rep-hard').textContent            = fmtDollar(hard);
+    document.getElementById('rep-permits-disp').textContent    = fmtDollar(permits);
+    document.getElementById('rep-contingency-disp').textContent= fmtDollar(contingency);
+    document.getElementById('rep-total').textContent           = fmtDollar(total);
+    document.getElementById('rep-item-count').textContent      = count;
+    document.getElementById('rep-per-sqft').textContent        = sqft > 0 ? '$' + fmt(total / sqft, 2) + '/sqft' : '—';
+
+    const flipIn = document.getElementById('flip-repairs-in');
+    if (flipIn) { flipIn.value = Math.round(total); calcFlip(); }
+  }
+
+  function applyPreset(key) {
+    const preset = PRESETS[key];
+    if (!preset) return;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.dataset.preset === key));
+    document.getElementById('preset-desc').textContent = preset.desc;
+
+    REPAIR_DATA.forEach(cat => {
+      cat.items.forEach(item => {
+        const chk  = getCheck(item.id);
+        const qIn  = getQtyInput(item.id);
+        const costIn = getCostInput(item.id);
+        const row  = document.querySelector(`tr[data-item-id="${item.id}"]`);
+        const val  = preset.items[item.id];
+        const on   = val !== undefined;
+        if (chk)  chk.checked  = on;
+        if (qIn)  qIn.value   = on ? val : 0;
+        if (costIn) costIn.value = item.avg;
+        if (row) row.classList.toggle('excluded', !on);
+      });
+    });
+    calcRepairs();
+  }
+
+  document.querySelectorAll('.preset-btn').forEach(b => b.addEventListener('click', () => applyPreset(b.dataset.preset)));
+
+  document.getElementById('repair-select-all').addEventListener('click', () => {
+    REPAIR_DATA.forEach(cat => cat.items.forEach(item => {
+      const chk = getCheck(item.id);
+      const row = document.querySelector(`tr[data-item-id="${item.id}"]`);
+      if (chk) chk.checked = true;
+      if (row) row.classList.remove('excluded');
+    }));
+    calcRepairs();
+  });
+
+  document.getElementById('repair-clear-all').addEventListener('click', () => {
+    REPAIR_DATA.forEach(cat => cat.items.forEach(item => {
+      const chk = getCheck(item.id);
+      const qIn = getQtyInput(item.id);
+      const row = document.querySelector(`tr[data-item-id="${item.id}"]`);
+      if (chk) chk.checked = false;
+      if (qIn) qIn.value = 0;
+      if (row) row.classList.add('excluded');
+    }));
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('preset-desc').textContent = 'Select a preset to auto-fill typical line items.';
+    calcRepairs();
+  });
+
+  document.getElementById('repair-reset-costs').addEventListener('click', () => {
+    REPAIR_DATA.forEach(cat => cat.items.forEach(item => {
+      const costIn = getCostInput(item.id);
+      if (costIn) costIn.value = item.avg;
+    }));
+    calcRepairs();
+  });
+
+  ['rep-permits','rep-contingency','rep-sqft'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calcRepairs);
+  });
+
+  /* ---- Flip Profit Calculator ---- */
+  function calcFlip() {
+    const purchase   = parseFloat(document.getElementById('flip-purchase').value)   || 0;
+    const arv        = parseFloat(document.getElementById('flip-arv').value)        || 0;
+    const repairs    = parseFloat(document.getElementById('flip-repairs-in').value) || 0;
+    const rate       = parseFloat(document.getElementById('flip-rate').value)       || 0;
+    const hold       = parseFloat(document.getElementById('flip-hold').value)       || 0;
+    const closeBuyPct= parseFloat(document.getElementById('flip-close-buy').value)  || 0;
+    const closeSellPct= parseFloat(document.getElementById('flip-close-sell').value)|| 0;
+    const carry      = parseFloat(document.getElementById('flip-carry').value)      || 0;
+
+    const loanInterest = purchase * (rate / 100) * (hold / 12);
+    const holding      = loanInterest + carry * hold;
+    const closeBuy     = purchase * closeBuyPct / 100;
+    const closeSell    = arv * closeSellPct / 100;
+    const profit       = arv - purchase - repairs - holding - closeBuy - closeSell;
+    const cashIn       = purchase * closeBuyPct / 100 + purchase + repairs;
+    const roi          = cashIn > 0 ? (profit / cashIn) * 100 : 0;
+    const annRoi       = hold > 0 ? roi * (12 / hold) : 0;
+    const margin       = arv > 0 ? (profit / arv) * 100 : 0;
+    const mao70        = arv * 0.70 - repairs;
+
+    document.getElementById('flip-profit').textContent      = fmtDollar(profit);
+    document.getElementById('flip-profit').style.color      = profit >= 0 ? '#4ade80' : '#f87171';
+    document.getElementById('flip-profit-stat').textContent = fmtDollar(profit);
+    document.getElementById('flip-profit-stat').className   = 'stat-value ' + (profit >= 0 ? 'highlight-green' : 'highlight-red');
+    document.getElementById('flip-arv-disp').textContent    = fmtDollar(arv);
+    document.getElementById('flip-purchase-disp').textContent= fmtDollar(purchase);
+    document.getElementById('flip-repairs-disp').textContent = fmtDollar(repairs);
+    document.getElementById('flip-holding-disp').textContent = fmtDollar(holding);
+    document.getElementById('flip-closebuy-disp').textContent= fmtDollar(closeBuy);
+    document.getElementById('flip-closesell-disp').textContent=fmtDollar(closeSell);
+    document.getElementById('flip-roi').textContent         = fmtPct(roi);
+    document.getElementById('flip-ann-roi').textContent     = fmtPct(annRoi);
+    document.getElementById('flip-margin').textContent      = fmtPct(margin);
+    document.getElementById('flip-mao70').textContent       = fmtDollar(mao70);
+    document.getElementById('flip-holding-stat').textContent= fmtDollar(holding);
+  }
+
+  ['flip-purchase','flip-arv','flip-repairs-in','flip-rate','flip-hold',
+   'flip-close-buy','flip-close-sell','flip-carry'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calcFlip);
+  });
+
+  buildTable();
+  calcRepairs();
+  calcFlip();
+})();
+
+/* ============================================================
+   BUY BOX TAB
+============================================================ */
+(function () {
+  function get(id) { return parseFloat(document.getElementById(id).value) || 0; }
+  function txt(id) { return document.getElementById(id).value.trim(); }
+
+  /* ---- MAO Calculator ---- */
+  function calcMAO() {
+    const arv     = get('mao-arv');
+    const repairs = get('mao-repairs');
+    const closePct= get('mao-closing');
+    const profit  = get('mao-profit');
+
+    const sell = arv * closePct / 100;
+
+    document.getElementById('mao-65').textContent     = fmtDollar(arv * 0.65 - repairs);
+    document.getElementById('mao-70').textContent     = fmtDollar(arv * 0.70 - repairs);
+    document.getElementById('mao-75').textContent     = fmtDollar(arv * 0.75 - repairs);
+    document.getElementById('mao-custom').textContent = fmtDollar(arv - repairs - sell - profit);
+  }
+
+  ['mao-arv','mao-repairs','mao-closing','mao-profit'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calcMAO);
+  });
+
+  /* ---- Deal Analyzer ---- */
+  function calcDeal() {
+    const asking   = get('deal-asking');
+    const arv      = get('deal-arv');
+    const repairs  = get('deal-repairs');
+    const beds     = parseInt(document.getElementById('deal-beds').value) || 0;
+    const sqft     = get('deal-sqft');
+
+    const sellCostPct = get('bb-sell-costs');
+    const sell        = arv * sellCostPct / 100;
+    const profit      = arv - asking - repairs - sell;
+    const cashIn      = asking + repairs;
+    const roi         = cashIn > 0 ? (profit / cashIn) * 100 : 0;
+    const mao70       = arv * 0.70 - repairs;
+
+    const minProfit   = get('bb-min-profit');
+    const minRoi      = get('bb-min-roi');
+    const maxPrice    = get('bb-max-price');
+    const minPrice    = get('bb-min-price');
+    const maxRepairs  = get('bb-max-repairs');
+    const minBeds     = parseInt(document.getElementById('bb-min-beds').value) || 0;
+    const minSqft     = get('bb-min-sqft');
+
+    document.getElementById('deal-mao').textContent    = fmtDollar(mao70);
+    document.getElementById('deal-profit').textContent = fmtDollar(profit);
+    document.getElementById('deal-roi').textContent    = fmtPct(roi);
+
+    const overMAO  = asking > mao70;
+    const diff     = mao70 - asking;
+    document.getElementById('deal-vs-mao').textContent =
+      overMAO ? fmtDollar(Math.abs(diff)) + ' over' : fmtDollar(diff) + ' under';
+    document.getElementById('deal-vs-mao').style.color = overMAO ? '#f87171' : '#4ade80';
+
+    const checks = [
+      { label: 'Price in range',     pass: asking >= minPrice && asking <= maxPrice, value: `${fmtDollar(asking)} (range ${fmtDollar(minPrice)}–${fmtDollar(maxPrice)})` },
+      { label: 'Below 70% MAO',      pass: asking <= mao70,                          value: `Ask ${fmtDollar(asking)} · MAO ${fmtDollar(mao70)}` },
+      { label: 'Repairs in budget',  pass: repairs <= maxRepairs,                    value: `${fmtDollar(repairs)} of ${fmtDollar(maxRepairs)} max` },
+      { label: 'Min profit met',     pass: profit >= minProfit,                      value: `${fmtDollar(profit)} (min ${fmtDollar(minProfit)})` },
+      { label: 'Min ROI met',        pass: roi >= minRoi,                            value: `${fmtPct(roi)} (min ${fmtPct(minRoi)})` },
+      { label: 'Bedroom count',      pass: beds >= minBeds,                          value: `${beds} bed (min ${minBeds})` },
+      { label: 'Square footage',     pass: sqft >= minSqft || sqft === 0,            value: sqft > 0 ? `${fmt(sqft)} sqft (min ${fmt(minSqft)})` : 'Not entered' },
+    ];
+
+    const passes = checks.filter(c => c.pass).length;
+    const total  = checks.length;
+    const score  = passes === total ? 'A' : passes >= total - 1 ? 'B' : passes >= total - 2 ? 'C' : passes >= total - 3 ? 'D' : 'F';
+    const scoreColors = { A: '#4ade80', B: '#86efac', C: '#fcd34d', D: '#fb923c', F: '#f87171' };
+
+    document.getElementById('deal-score').textContent     = score;
+    document.getElementById('deal-score').style.color     = scoreColors[score];
+
+    const cl = document.getElementById('deal-checklist');
+    cl.innerHTML = checks.map(c => `
+      <div class="check-item ${c.pass ? 'pass' : 'fail'}">
+        <span class="check-icon">${c.pass ? '✓' : '✗'}</span>
+        <span class="check-label">${c.label}</span>
+        <span class="check-value">${c.value}</span>
+      </div>`).join('');
+  }
+
+  ['deal-asking','deal-arv','deal-repairs','deal-beds','deal-sqft',
+   'bb-max-price','bb-min-price','bb-max-repairs','bb-min-beds','bb-min-sqft',
+   'bb-min-profit','bb-min-roi','bb-sell-costs'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calcDeal);
+  });
+
+  /* ---- Find Listings portal links ---- */
+  function updatePortalLinks() {
+    const raw  = txt('search-zip');
+    const min  = Math.round(get('search-min'));
+    const max  = Math.round(get('search-max'));
+    const beds = document.getElementById('search-beds').value;
+    const zip  = encodeURIComponent(raw.replace(/\s+/g, '-'));
+    const rawZip = raw.match(/^\d{5}$/) ? raw : raw;
+
+    const zillowUrl  = `https://www.zillow.com/homes/for_sale/${zip}_rb/${min}-${max}_price/${beds}%2B_beds/`;
+    const realtorUrl = `https://www.realtor.com/realestateandhomes-search/${zip}/price-${min}-${max}/beds-${beds}/`;
+    const redfinUrl  = `https://www.redfin.com/zipcode/${encodeURIComponent(rawZip.replace(/\s*,.*/, '').replace(/\s+/g, '-'))}`;
+    const loopnetUrl = `https://www.loopnet.com/search/residential-income-properties/${encodeURIComponent(raw)}/for-sale/`;
+
+    document.getElementById('link-zillow').href  = zillowUrl;
+    document.getElementById('link-realtor').href = realtorUrl;
+    document.getElementById('link-redfin').href  = redfinUrl;
+    document.getElementById('link-loopnet').href = loopnetUrl;
+  }
+
+  ['search-zip','search-min','search-max','search-beds'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePortalLinks);
+  });
+
+  /* sync buy box zip → search zip */
+  document.getElementById('bb-zip').addEventListener('input', () => {
+    document.getElementById('search-zip').value = document.getElementById('bb-zip').value;
+    updatePortalLinks();
+  });
+  document.getElementById('bb-max-price').addEventListener('input', () => {
+    document.getElementById('search-max').value = document.getElementById('bb-max-price').value;
+    updatePortalLinks();
+  });
+  document.getElementById('bb-min-price').addEventListener('input', () => {
+    document.getElementById('search-min').value = document.getElementById('bb-min-price').value;
+    updatePortalLinks();
+  });
+
+  calcMAO();
+  calcDeal();
+  updatePortalLinks();
+})();

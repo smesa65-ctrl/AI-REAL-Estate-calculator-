@@ -16,7 +16,7 @@
         </svg>
         <span>Real Estate Calculator</span>
       </div>
-      <p class="tagline">Mortgage · Affordability · Rental ROI · Amortization</p>
+      <p class="tagline">Mortgage · Affordability · Rental ROI · Repairs · Buy Box</p>
     </div>
   </header>
 
@@ -27,6 +27,8 @@
       <button class="tab-btn" data-tab="rental">Rental ROI</button>
       <button class="tab-btn" data-tab="amortization">Amortization</button>
       <button class="tab-btn" data-tab="compare">Compare Loans</button>
+      <button class="tab-btn" data-tab="repairs">Repair Costs</button>
+      <button class="tab-btn" data-tab="buybox">Buy Box</button>
     </nav>
 
     <!-- ===== MORTGAGE TAB ===== -->
@@ -630,6 +632,428 @@
         <div class="chart-legend" id="compare-legend"></div>
       </div>
     </section>
+    <!-- ===== REPAIR COSTS TAB ===== -->
+    <section id="tab-repairs" class="tab-content">
+      <div class="repair-top-grid">
+        <div class="card">
+          <h2>Condition Presets</h2>
+          <p class="hint" style="margin-bottom:14px">Quick-fill common repairs by property condition</p>
+          <div class="preset-btns">
+            <button class="preset-btn" data-preset="cosmetic">Cosmetic</button>
+            <button class="preset-btn" data-preset="light">Light Rehab</button>
+            <button class="preset-btn" data-preset="full">Full Rehab</button>
+            <button class="preset-btn" data-preset="gut">Gut Rehab</button>
+          </div>
+          <div class="preset-desc" id="preset-desc">Select a preset to auto-fill typical line items.</div>
+
+          <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-100)">
+            <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">Soft Costs &amp; Settings</h3>
+            <div class="form-group">
+              <label for="rep-permits">Permits &amp; Inspections</label>
+              <div class="input-prefix"><span>$</span>
+                <input type="number" id="rep-permits" value="2500" min="0" step="100" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="rep-contingency">Contingency Buffer</label>
+              <div class="input-suffix">
+                <input type="number" id="rep-contingency" value="10" min="0" max="50" step="1" />
+                <span>%</span>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="rep-sqft">Property Sq Ft</label>
+              <div class="input-suffix">
+                <input type="number" id="rep-sqft" value="1500" min="0" step="100" />
+                <span>sqft</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card summary-card">
+          <h2>Repair Budget</h2>
+          <div class="big-number" id="rep-total">$0</div>
+          <div class="payment-breakdown">
+            <div class="breakdown-row"><span>Hard Costs (line items)</span><span id="rep-hard">$0</span></div>
+            <div class="breakdown-row"><span>Permits &amp; Soft Costs</span><span id="rep-permits-disp">$0</span></div>
+            <div class="breakdown-row"><span>Contingency</span><span id="rep-contingency-disp">$0</span></div>
+            <div class="breakdown-row"><span>Cost per Sq Ft</span><span id="rep-per-sqft">—</span></div>
+            <div class="breakdown-row"><span>Items Selected</span><span id="rep-item-count">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card repair-table-card">
+        <div class="repair-table-header">
+          <div>
+            <h2>Itemized Repair Costs</h2>
+            <p class="hint">Check items to include · Edit qty &amp; unit cost · Prices are national averages</p>
+          </div>
+          <div class="repair-table-actions">
+            <button class="action-btn" id="repair-select-all">Select All</button>
+            <button class="action-btn" id="repair-clear-all">Clear All</button>
+            <button class="action-btn" id="repair-reset-costs">Reset to Avg</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="repair-table">
+            <thead>
+              <tr>
+                <th style="width:40px;text-align:center">✓</th>
+                <th>Repair Item</th>
+                <th>Typical Range</th>
+                <th style="width:80px">Qty</th>
+                <th style="width:140px">Unit Cost</th>
+                <th style="width:110px;text-align:right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="repair-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel-grid" style="margin-top:20px">
+        <div class="card">
+          <h2>Flip Profit Calculator</h2>
+          <div class="form-group">
+            <label for="flip-purchase">Purchase Price</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="flip-purchase" value="200000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="flip-arv">After Repair Value (ARV)</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="flip-arv" value="320000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="flip-repairs-in">Repair Costs</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="flip-repairs-in" value="0" min="0" step="500" />
+            </div>
+            <small class="hint">Auto-synced from the repair estimator above</small>
+          </div>
+          <div class="form-group">
+            <label for="flip-rate">Hard Money / Loan Rate</label>
+            <div class="input-suffix">
+              <input type="number" id="flip-rate" value="10" min="0" max="30" step="0.25" />
+              <span>% annual</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="flip-hold">Hold Time</label>
+            <div class="input-suffix">
+              <input type="number" id="flip-hold" value="6" min="1" max="36" step="1" />
+              <span>months</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="flip-close-buy">Buy-Side Closing Costs</label>
+            <div class="input-suffix">
+              <input type="number" id="flip-close-buy" value="2" min="0" max="10" step="0.25" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="flip-close-sell">Sell-Side Closing Costs</label>
+            <div class="input-suffix">
+              <input type="number" id="flip-close-sell" value="8" min="0" max="15" step="0.25" />
+              <span>% (commissions + title)</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="flip-carry">Monthly Carrying Costs</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="flip-carry" value="350" min="0" step="50" />
+            </div>
+            <small class="hint">Utilities, property tax, insurance during hold period</small>
+          </div>
+        </div>
+
+        <div class="results-column">
+          <div class="card summary-card">
+            <h2>Projected Profit</h2>
+            <div class="big-number" id="flip-profit">$0</div>
+            <div class="payment-breakdown">
+              <div class="breakdown-row"><span>Sale Price (ARV)</span><span id="flip-arv-disp">$0</span></div>
+              <div class="breakdown-row"><span>− Purchase Price</span><span id="flip-purchase-disp">$0</span></div>
+              <div class="breakdown-row"><span>− Repair Costs</span><span id="flip-repairs-disp">$0</span></div>
+              <div class="breakdown-row"><span>− Holding Costs</span><span id="flip-holding-disp">$0</span></div>
+              <div class="breakdown-row"><span>− Buy Closing</span><span id="flip-closebuy-disp">$0</span></div>
+              <div class="breakdown-row"><span>− Sell Closing</span><span id="flip-closesell-disp">$0</span></div>
+            </div>
+          </div>
+          <div class="card stats-card">
+            <h2>Flip Metrics</h2>
+            <div class="stats-grid">
+              <div class="stat"><div class="stat-label">Net Profit</div><div class="stat-value highlight-green" id="flip-profit-stat">$0</div></div>
+              <div class="stat"><div class="stat-label">ROI on Cash</div><div class="stat-value" id="flip-roi">0%</div></div>
+              <div class="stat"><div class="stat-label">Annualized ROI</div><div class="stat-value highlight-green" id="flip-ann-roi">0%</div></div>
+              <div class="stat"><div class="stat-label">Profit Margin</div><div class="stat-value" id="flip-margin">0%</div></div>
+              <div class="stat"><div class="stat-label">70% Rule MAO</div><div class="stat-value" id="flip-mao70">$0</div></div>
+              <div class="stat"><div class="stat-label">Total Holding Cost</div><div class="stat-value highlight-red" id="flip-holding-stat">$0</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BUY BOX TAB ===== -->
+    <section id="tab-buybox" class="tab-content">
+      <div class="buybox-top">
+        <div class="card">
+          <h2>Your Buy Box</h2>
+          <p class="hint" style="margin-bottom:16px">Define your investment criteria — used by the Deal Analyzer below</p>
+          <div class="buybox-form">
+            <div class="form-group">
+              <label for="bb-strategy">Investment Strategy</label>
+              <select id="bb-strategy">
+                <option value="flip">Fix &amp; Flip</option>
+                <option value="brrrr">BRRRR</option>
+                <option value="rental">Buy &amp; Hold (Rental)</option>
+                <option value="wholesale">Wholesale</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bb-zip">Target Market (zip / city)</label>
+              <input type="text" id="bb-zip" value="77433" class="text-input" placeholder="e.g. 77433 or Houston TX" />
+            </div>
+            <div class="form-group">
+              <label for="bb-max-price">Max Purchase Price</label>
+              <div class="input-prefix"><span>$</span>
+                <input type="number" id="bb-max-price" value="300000" min="0" step="5000" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bb-min-price">Min Purchase Price</label>
+              <div class="input-prefix"><span>$</span>
+                <input type="number" id="bb-min-price" value="50000" min="0" step="5000" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bb-max-repairs">Max Repair Budget</label>
+              <div class="input-prefix"><span>$</span>
+                <input type="number" id="bb-max-repairs" value="75000" min="0" step="1000" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bb-min-beds">Min Bedrooms</label>
+              <select id="bb-min-beds">
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3" selected>3+</option>
+                <option value="4">4+</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bb-min-sqft">Min Sq Ft</label>
+              <div class="input-suffix">
+                <input type="number" id="bb-min-sqft" value="1000" min="0" step="100" />
+                <span>sqft</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bb-min-profit">Min Profit Target</label>
+              <div class="input-prefix"><span>$</span>
+                <input type="number" id="bb-min-profit" value="30000" min="0" step="1000" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bb-min-roi">Min ROI Target</label>
+              <div class="input-suffix">
+                <input type="number" id="bb-min-roi" value="20" min="0" max="200" step="1" />
+                <span>%</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bb-sell-costs">Sell-Side Costs</label>
+              <div class="input-suffix">
+                <input type="number" id="bb-sell-costs" value="8" min="0" max="15" step="0.5" />
+                <span>%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>MAO Calculator</h2>
+          <p class="hint" style="margin-bottom:16px">Maximum Allowable Offer — what to offer given your profit goals</p>
+          <div class="form-group">
+            <label for="mao-arv">After Repair Value (ARV)</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="mao-arv" value="300000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="mao-repairs">Estimated Repairs</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="mao-repairs" value="40000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="mao-closing">Selling Costs</label>
+            <div class="input-suffix">
+              <input type="number" id="mao-closing" value="8" min="0" max="20" step="0.5" />
+              <span>%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="mao-profit">Desired Profit</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="mao-profit" value="30000" min="0" step="1000" />
+            </div>
+          </div>
+
+          <div class="mao-results">
+            <div class="mao-rule">
+              <div class="mao-rule-label">
+                <span class="mao-badge" style="background:#fee2e2;color:#dc2626">65%</span>
+                <span>Conservative</span>
+              </div>
+              <div class="mao-value" id="mao-65">$0</div>
+            </div>
+            <div class="mao-rule mao-rule-primary">
+              <div class="mao-rule-label">
+                <span class="mao-badge" style="background:#dbeafe;color:#1d4ed8">70%</span>
+                <span>Standard (most common)</span>
+              </div>
+              <div class="mao-value" id="mao-70">$0</div>
+            </div>
+            <div class="mao-rule">
+              <div class="mao-rule-label">
+                <span class="mao-badge" style="background:#dcfce7;color:#15803d">75%</span>
+                <span>Aggressive</span>
+              </div>
+              <div class="mao-value" id="mao-75">$0</div>
+            </div>
+            <div class="mao-rule" style="border:2px solid var(--blue);margin-top:4px">
+              <div class="mao-rule-label">
+                <span class="mao-badge" style="background:#f3f4f6;color:#4b5563">Custom</span>
+                <span>ARV − Repairs − Closing − Profit</span>
+              </div>
+              <div class="mao-value" id="mao-custom">$0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-grid">
+        <div class="card">
+          <h2>Deal Analyzer</h2>
+          <p class="hint" style="margin-bottom:16px">Enter a specific deal to score it against your buy box</p>
+          <div class="form-group">
+            <label for="deal-address">Property Address / Label</label>
+            <input type="text" id="deal-address" class="text-input" placeholder="123 Main St, Springfield IL" />
+          </div>
+          <div class="form-group">
+            <label for="deal-asking">Asking Price</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="deal-asking" value="225000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="deal-arv">Estimated ARV</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="deal-arv" value="310000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="deal-repairs">Estimated Repairs</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="deal-repairs" value="45000" min="0" step="1000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="deal-beds">Bedrooms</label>
+            <select id="deal-beds">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+              <option value="5">5+</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="deal-sqft">Sq Ft</label>
+            <div class="input-suffix">
+              <input type="number" id="deal-sqft" value="1400" min="0" step="100" />
+              <span>sqft</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-column">
+          <div class="card summary-card">
+            <h2>Deal Score</h2>
+            <div class="big-number" id="deal-score">—</div>
+            <div class="payment-breakdown">
+              <div class="breakdown-row"><span>MAO (70% Rule)</span><span id="deal-mao">$0</span></div>
+              <div class="breakdown-row"><span>Price vs MAO</span><span id="deal-vs-mao">—</span></div>
+              <div class="breakdown-row"><span>Est. Profit</span><span id="deal-profit">$0</span></div>
+              <div class="breakdown-row"><span>Est. ROI</span><span id="deal-roi">0%</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Criteria Checklist</h2>
+            <div id="deal-checklist" class="deal-checklist"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <h2>Find Listings</h2>
+        <p class="hint" style="margin-bottom:16px">Search top listing portals filtered to your buy box location and price range</p>
+        <div class="find-listings-top">
+          <div class="form-group" style="flex:1;min-width:180px;margin-bottom:0">
+            <label for="search-zip">Location (zip or city)</label>
+            <input type="text" id="search-zip" class="text-input" value="77433" placeholder="77433 or Houston TX" />
+          </div>
+          <div class="form-group" style="flex:1;min-width:130px;margin-bottom:0">
+            <label for="search-min">Min Price</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="search-min" value="50000" step="5000" />
+            </div>
+          </div>
+          <div class="form-group" style="flex:1;min-width:130px;margin-bottom:0">
+            <label for="search-max">Max Price</label>
+            <div class="input-prefix"><span>$</span>
+              <input type="number" id="search-max" value="300000" step="5000" />
+            </div>
+          </div>
+          <div class="form-group" style="flex:1;min-width:110px;margin-bottom:0">
+            <label for="search-beds">Min Beds</label>
+            <select id="search-beds">
+              <option value="1">1+</option>
+              <option value="2">2+</option>
+              <option value="3" selected>3+</option>
+              <option value="4">4+</option>
+            </select>
+          </div>
+        </div>
+        <div class="portal-grid">
+          <a class="portal-btn" id="link-zillow" target="_blank" rel="noopener noreferrer">
+            <div class="portal-icon" style="background:#006aff;color:#fff">Z</div>
+            <div><div class="portal-name">Zillow</div><div class="portal-sub">All listings + Zestimate</div></div>
+          </a>
+          <a class="portal-btn" id="link-realtor" target="_blank" rel="noopener noreferrer">
+            <div class="portal-icon" style="background:#d02f2f;color:#fff">R</div>
+            <div><div class="portal-name">Realtor.com</div><div class="portal-sub">MLS-backed data</div></div>
+          </a>
+          <a class="portal-btn" id="link-redfin" target="_blank" rel="noopener noreferrer">
+            <div class="portal-icon" style="background:#a02030;color:#fff">RF</div>
+            <div><div class="portal-name">Redfin</div><div class="portal-sub">Price drops &amp; investor filters</div></div>
+          </a>
+          <a class="portal-btn" id="link-loopnet" target="_blank" rel="noopener noreferrer">
+            <div class="portal-icon" style="background:#1a56db;color:#fff">LN</div>
+            <div><div class="portal-name">LoopNet</div><div class="portal-sub">Commercial &amp; investment</div></div>
+          </a>
+        </div>
+        <small class="hint" style="margin-top:12px;display:block">Links open the portal's search page filtered to your location. Apply additional filters (days on market, price reductions) within each platform.</small>
+      </div>
+    </section>
+
   </main>
 
   <footer>
